@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   const text = typeof body.text === "string" ? body.text.trim() : "";
   if (text.length < 20 || text.length > 20_000) return fail("Enter between 20 and 20,000 characters.", 400);
   const key = process.env.DEEPGRAM_API_KEY;
-  if (!key) return fail("Deepgram is not configured yet.", 503);
+  if (!key) return fail("The analysis provider is not configured yet.", 503);
   const quota = await reserveUsage(request, "transcribe");
   if (!quota.ok) return Response.json({error: quota.error}, {status: quota.status});
   const url = new URL("https://api.deepgram.com/v1/read");

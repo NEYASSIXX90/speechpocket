@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   if (typeof mode !== "string" || !modes.has(mode as AudioMode)) return fail("Choose a supported analysis mode.", 400);
 
   const key = process.env.DEEPGRAM_API_KEY;
-  if (!key) return fail("Deepgram is not configured yet.", 503);
+  if (!key) return fail("The speech provider is not configured yet.", 503);
   const quota = await reserveUsage(request, "transcribe");
   if (!quota.ok) return Response.json({error: quota.error}, {status: quota.status, headers: quota.retryAfter ? {"Retry-After": String(quota.retryAfter)} : {}});
 

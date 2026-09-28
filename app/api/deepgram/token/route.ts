@@ -2,7 +2,7 @@ import {reserveUsage} from "@/lib/usage-limit";
 
 export async function POST(request: Request) {
   const key = process.env.DEEPGRAM_API_KEY;
-  if (!key) return Response.json({error: "Deepgram is not configured yet."}, {status: 503});
+  if (!key) return Response.json({error: "The speech provider is not configured yet."}, {status: 503});
   const quota = await reserveUsage(request, "transcribe");
   if (!quota.ok) return Response.json({error: quota.error}, {status: quota.status});
   try {

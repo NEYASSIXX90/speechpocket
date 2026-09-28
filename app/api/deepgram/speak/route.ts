@@ -15,9 +15,9 @@ export async function POST(request: Request) {
   const speed = Math.max(engine === "flux" ? 0.5 : 0.7, Math.min(1.5, Number(body.speed) || 1));
   const expressivity = Math.max(-2, Math.min(2, Number(body.expressivity) || 0));
   if (!text || text.length > 2_000) return fail("Enter up to 2,000 characters.", 400);
-  if (engine === "flux" && language !== "en") return fail("Flux expressive mode currently uses an English voice in SpeechPocket.", 400);
+  if (engine === "flux" && language !== "en") return fail("The expressive voice style currently uses an English voice.", 400);
   const key = process.env.DEEPGRAM_API_KEY;
-  if (!key) return fail("Deepgram is not configured yet.", 503);
+  if (!key) return fail("The speech provider is not configured yet.", 503);
   const quota = await reserveUsage(request, "speak");
   if (!quota.ok) return Response.json({error: quota.error}, {status: quota.status});
 
