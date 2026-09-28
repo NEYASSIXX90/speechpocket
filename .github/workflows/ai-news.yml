@@ -1,0 +1,43 @@
+name: Publish verified AI tools news
+
+on:
+  schedule:
+    - cron: "0 7,13,19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: speechpocket-ai-news
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Research and create one qualified story
+        env:
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+          NEWS_LLM_API_KEY: ${{ secrets.NEWS_LLM_API_KEY }}
+          NEWS_LLM_BASE_URL: ${{ secrets.NEWS_LLM_BASE_URL }}
+          NEWS_LLM_MODEL: ${{ secrets.NEWS_LLM_MODEL }}
+        run: node scripts/generate-ai-news.mjs
+      - name: Commit a new article when one passed the gates
+        run: |
+          if [ -z "$(git status --porcelain -- content/ai-news)" ]; then
+            echo "No article passed the publication gates."
+            exit 0
+          fi
+          git config user.name "SpeechPocket News Bot"
+          git config user.email "news-bot@users.noreply.github.com"
+          git add content/ai-news
+          git commit -m "content: publish verified AI tools news"
+          git push

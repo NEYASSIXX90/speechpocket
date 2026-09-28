@@ -1,9 +1,10 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {AudioLines,BookOpen,Captions,FileAudio,FileText,Phone,Repeat2,Upload,Volume2,ArrowDownToLine,Check,Copy,ArrowRight} from "lucide-react";
+import {AudioLines,BookOpen,Captions,FileAudio,FileText,Phone,Repeat2,Upload,Volume2,ArrowDownToLine,Check,Copy,ArrowRight,Sparkles} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {NativeSelect,NativeSelectOption} from "@/components/ui/native-select";
-import {tools,audioLanguages,linkFor,type Tool} from "@/lib/tool-data";
+import {tools,audioLanguages,linkFor} from "@/lib/tool-data";
+import {advancedTools,advancedLink} from "@/lib/advanced-tools";
 
 const icons={file:FileAudio,captions:Captions,audio:AudioLines,volume:Volume2,phone:Phone,repeat:Repeat2,book:BookOpen};
 type Props={initialTool:string;initialLocale:string};
@@ -14,7 +15,7 @@ async function durationOf(file:File):Promise<number>{
  try{return await new Promise((resolve,reject)=>{
   const media=document.createElement("audio"),timer=setTimeout(()=>{media.src="";reject(new Error("Could not read audio duration."))},6500);
   media.preload="metadata";
-  media.onloadedmetadata=()=>{clearTimeout(timer);const seconds=media.duration;media.src="";Number.isFinite(seconds)?resolve(seconds):reject(new Error("Use a recording with a readable duration."))};
+  media.onloadedmetadata=()=>{clearTimeout(timer);const seconds=media.duration;media.src="";if(Number.isFinite(seconds))resolve(seconds);else reject(new Error("Use a recording with a readable duration."));};
   media.onerror=()=>{clearTimeout(timer);media.src="";reject(new Error("This audio format could not be read by your browser."))};
   media.src=url;
  })}finally{URL.revokeObjectURL(url)}
@@ -97,7 +98,7 @@ export default function Workbench({initialTool,initialLocale}:Props){
  return <div className="site-shell">
   <header className="site-header">
    <a href="/" className="brand" aria-label="SpeechPocket home"><span className="brand-mark" aria-hidden="true"><i/><i/><i/><i/></span><span className="brand-copy"><b>SpeechPocket</b><small>Free speech and audio tools</small></span></a>
-   <nav className="top-nav" aria-label="Main navigation"><a href="/" aria-current="page">Tools</a><a href="/privacy">Privacy</a></nav>
+   <nav className="top-nav" aria-label="Main navigation"><a href="/" aria-current="page">Tools</a><a href="/ai-news">AI news</a><a href="/privacy">Privacy</a></nav>
    <a className="header-action" href="#tool-workspace">Open tool <ArrowRight size={16}/></a>
   </header>
   <div className="page-frame">
@@ -105,7 +106,7 @@ export default function Workbench({initialTool,initialLocale}:Props){
     <div><div className="eyebrow"><span className="eyebrow-dot"/> {copy.eyebrow}</div>
     <h1 className="heading" id="page-title">Sound in.<br/><span>Something useful out.</span></h1>
     <p className="intro">Transcribe recordings, generate speech, check pronunciation, and convert audio—all in one focused workspace.</p></div>
-    <div className="hero-note"><span>8 focused tools</span><strong>No account needed</strong><small>Short files. Clear limits. Fast results.</small></div>
+    <div className="hero-note"><span>23 focused tools</span><strong>No account needed</strong><small>Transcription, intelligence, voice, and live audio.</small></div>
    </section>
    <div className="workspace" id="tool-workspace">
    <nav className="rail" aria-label="Audio tools">
@@ -149,7 +150,8 @@ export default function Workbench({initialTool,initialLocale}:Props){
     <p className="fineprint">Synthetic voices can mispronounce unusual words and names. Check the result before using it in a recording. Audio transcription may contain mistakes. <a href="/privacy" style={{textDecoration:"underline"}}>Privacy and usage limits</a>.</p>
    </main>
   </div>
-   <footer className="site-footer"><a href="/" className="footer-brand">SpeechPocket</a><p>Free speech and audio tools for short, everyday tasks.</p><a href="/privacy">Privacy &amp; usage limits</a></footer>
+   <section className="advanced-discovery" aria-labelledby="advanced-tools-title"><div className="advanced-discovery-heading"><div><span>Deepgram capability lab</span><h2 id="advanced-tools-title">Go beyond basic transcription</h2></div><a href={advancedLink("audio-language-detector")}>Start with language detection <ArrowRight size={17}/></a></div><div className="advanced-discovery-grid">{advancedTools.filter(item=>item.kind!=="enterprise").map(item=><a href={advancedLink(item.slug)} key={item.slug}><span><Sparkles size={17}/></span><b>{item.shortTitle}</b><small>{item.detail}</small><ArrowRight className="advanced-card-arrow" size={17}/></a>)}</div></section>
+   <footer className="site-footer"><a href="/" className="footer-brand">SpeechPocket</a><p>Free speech intelligence tools and practical AI news.</p><a href="/ai-news">AI news</a><a href="/privacy">Privacy &amp; usage limits</a></footer>
   </div>
  </div>;
 }

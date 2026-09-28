@@ -11,8 +11,15 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "public/pdf.worker.min.mjs",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Plain anchors keep navigation compatible with both Next.js and Vinext.
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
   {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
     rules: {
