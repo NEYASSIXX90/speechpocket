@@ -1,0 +1,53 @@
+{
+  "slug": "nvidia-open-agent-safety-platform-launch",
+  "title": "Nvidia launches Open Agent Safety Platform for governing autonomous AI agents",
+  "description": "Nvidia’s Open Agent Safety Platform combines an open-source runtime and hardware watchdog to govern AI agents from testing through deployment.",
+  "dek": "Nvidia has introduced a security stack designed to put enforceable software and hardware boundaries around autonomous AI agents.",
+  "category": "AI tools",
+  "publishedAt": "2026-09-28T23:57:00.000Z",
+  "updatedAt": "2026-09-28T23:57:00.000Z",
+  "author": "SpeechPocket Newsroom",
+  "sourceEventDate": "2026-09-28",
+  "takeaways": [
+    "OpenShell is broadly available as an open-source runtime for limiting agent access.",
+    "Nvidia says Sentry can independently monitor and quarantine agents that cross policy boundaries.",
+    "Teams should evaluate the controls against their own threat models before production adoption."
+  ],
+  "sections": [
+    {
+      "heading": "What Nvidia launched",
+      "paragraphs": [
+        "Nvidia launched its Open Agent Safety Platform on September 28, pairing open-source runtime software with a hardware-backed monitoring design for autonomous AI agents. The company says the platform is intended to govern agents from testing through deployment, including systems that can access files, credentials, APIs, networks or physical equipment.",
+        "The software component, OpenShell, is broadly available. Its public repository describes isolated sandboxes, policy checks for file and network access, and credential handling that injects secrets only into requests for approved endpoints. The repository lists Linux, Apple-silicon macOS and experimental Windows Subsystem for Linux support."
+      ]
+    },
+    {
+      "heading": "A second control layer",
+      "paragraphs": [
+        "Nvidia’s Sentry design adds an out-of-band watchdog running on BlueField-4 data-processing units. Nvidia says it monitors agent activity independently and can quarantine an agent that moves beyond its assigned boundary in milliseconds. That performance statement comes from Nvidia and has not yet been independently benchmarked in the sources reviewed by SpeechPocket.",
+        "ABC News independently confirmed the launch and reported participation from companies including Anthropic, IBM, Microsoft and Palantir. Nvidia’s announcement names more than 100 organizations working with elements of the platform."
+      ]
+    },
+    {
+      "heading": "Why it matters",
+      "paragraphs": [
+        "The practical shift is that agent safety is moving below the prompt and application layer. Developers can now test an open runtime that enforces permissions outside the model itself, while Sentry targets organizations deploying Nvidia’s newer hardware.",
+        "Teams should treat the release as infrastructure to evaluate, not proof that autonomous agents are safe. The next questions are how OpenShell performs under real attacks, what Sentry costs, and which protections work on third-party hardware."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Nvidia Newsroom: Open Agent Safety Platform announcement",
+      "url": "https://nvidianews.nvidia.com/news/open-agent-safety-platform"
+    },
+    {
+      "title": "NVIDIA/OpenShell on GitHub",
+      "url": "https://github.com/NVIDIA/OpenShell"
+    },
+    {
+      "title": "ABC News: Nvidia releases software to prevent AI security incidents",
+      "url": "https://abcnews.com/Business/nvidia-releases-software-prevent-ai-security-incidents/story?id=136818683"
+    }
+  ]
+}
