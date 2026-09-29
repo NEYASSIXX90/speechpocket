@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: {default:"SpeechPocket — turn short recordings into useful text",template:"%s | SpeechPocket"},
   description:"Short audio tools for transcription, subtitles, speaker labels, language detection, speech generation, and local conversion.",
   metadataBase:new URL(process.env.NEXT_PUBLIC_SITE_URL||"https://speechpocket.vercel.app"),
+  verification:{google:"W7qfvaDvJz8qDezBCHdRcqn6dQuDXSU921Sa7d-Ev8M"},
   robots: {index:true,follow:true},
   icons:{icon:"/favicon.svg"},
   openGraph:{siteName:"SpeechPocket",type:"website"},
