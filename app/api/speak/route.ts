@@ -20,6 +20,6 @@ export async function POST(request:Request){
   endpoint.searchParams.set("model",voices[lang]);endpoint.searchParams.set("encoding","mp3");
   const upstream=await fetch(endpoint,{method:"POST",headers:{"Authorization":`Token ${key}`,"Content-Type":"application/json"},body:JSON.stringify({text}),signal:AbortSignal.timeout(18000)});
   if(!upstream.ok)return fail("Speech generation could not be completed. Try again later.",502);
-  return new Response(upstream.body,{headers:{"Content-Type":"audio/mpeg","Content-Disposition":'attachment; filename="speechpocket-audio.mp3"',"Cache-Control":"no-store"}});
+  return new Response(upstream.body,{headers:{"Content-Type":"audio/mpeg","Content-Disposition":'attachment; filename="voculo-audio.mp3"',"Cache-Control":"no-store"}});
  }catch{return fail("Speech generation timed out. Try again later.",504)}
 }

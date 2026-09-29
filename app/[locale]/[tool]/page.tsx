@@ -13,7 +13,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  if((!tool&&!advanced)||!locales.includes(locale as typeof locales[number])||(advanced&&locale!=="en")) return {};
  const frenchEntry=locale==="fr"&&slug==="audio-to-text";
  const title=advanced?`${advanced.shortTitle} — free online tool`:frenchEntry?"Transcription audio en texte gratuit":tool!.title;
- const description=advanced?advanced.description:frenchEntry?"Transcrivez un court fichier audio français en texte modifiable. Importez un MP3, M4A, WAV ou MP4 de 2 Mo maximum.":tool!.description;
+ const description=advanced?advanced.description:frenchEntry?"Transcrivez un court enregistrement audio français et obtenez un texte modifiable.":tool!.description;
  return {title,description,alternates:{canonical:linkFor(slug,locale)},robots:{index:(locale==="en"||frenchEntry)&&slug!=="enterprise-speech",follow:true},openGraph:{title,description,type:"website",url:linkFor(slug,locale)}};
 }
 export default async function ToolPage({params}:Props){

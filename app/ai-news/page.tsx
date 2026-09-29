@@ -3,7 +3,7 @@ import {ArrowRight,Clock3,Sparkles} from "lucide-react";
 import {getNewsArticles} from "@/lib/news";
 import SiteChrome from "@/components/site-chrome";
 
-export const metadata:Metadata={title:"AI tools news",description:"Verified AI product launches, updates, comparisons, and practical analysis from SpeechPocket.",alternates:{canonical:"/ai-news"},robots:{index:true,follow:true},openGraph:{title:"AI tools news | SpeechPocket",description:"Verified AI product launches, updates, comparisons, and practical analysis.",type:"website"}};
+export const metadata:Metadata={title:"AI tools notes",description:"Verified AI product launches, updates, comparisons, and practical analysis from Voculo.",alternates:{canonical:"/ai-news"},robots:{index:true,follow:true},openGraph:{title:"AI tools notes | Voculo",description:"Verified AI product launches, updates, comparisons, and practical analysis.",type:"website"}};
 
 export default function NewsIndex(){
  const articles=getNewsArticles();
