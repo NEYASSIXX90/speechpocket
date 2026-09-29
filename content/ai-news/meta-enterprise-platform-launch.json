@@ -1,0 +1,48 @@
+{
+  "slug": "meta-enterprise-platform-launch",
+  "title": "Meta launches Enterprise Platform to package its AI tools for businesses",
+  "description": "Meta Enterprise Platform will bring Muse, Meta Business Agent, Muse API and Muse Code to business customers under a new organization.",
+  "dek": "The new business line puts former MongoDB chief CJ Desai in charge of turning Meta’s models, agents and infrastructure into enterprise products.",
+  "category": "AI tools",
+  "publishedAt": "2026-09-29T04:19:00.000Z",
+  "updatedAt": "2026-09-29T04:19:00.000Z",
+  "author": "SpeechPocket Newsroom",
+  "sourceEventDate": "2026-09-28",
+  "takeaways": [
+    "Meta Enterprise Platform will initially group Muse, Meta Business Agent, Muse API and Muse Code for businesses and developers.",
+    "Former MongoDB CEO CJ Desai will lead the operation and report directly to Mark Zuckerberg.",
+    "Meta has not yet published pricing, availability dates or detailed enterprise controls."
+  ],
+  "sections": [
+    {
+      "heading": "A new enterprise AI business",
+      "paragraphs": [
+        "Meta launched Meta Enterprise Platform on September 28, creating a business line dedicated to packaging its AI stack for corporate customers and developers. The company says the initial portfolio will include the Muse agent, Meta Business Agent, Muse API and Muse Code, alongside its models and large-scale infrastructure.",
+        "The announcement describes a strategic organization rather than a generally available product with published plans. Meta did not provide pricing, launch regions, service guarantees or a date when customers can buy the combined platform."
+      ]
+    },
+    {
+      "heading": "New leadership and a broader market",
+      "paragraphs": [
+        "Chirantan “CJ” Desai, who has left his role as MongoDB’s chief executive, will become Meta’s chief enterprise platform officer and report directly to CEO Mark Zuckerberg. Meta says Desai will focus on turning its AI stack into products and services that companies can deploy. Reuters independently confirmed the appointment and the platform’s initial product lineup.",
+        "The move matters because Meta is extending beyond consumer apps and advertising into a crowded enterprise AI market. Its existing business relationships and infrastructure could help distribution, but the announcement does not yet establish how the platform will compare with mature cloud and model providers."
+      ]
+    },
+    {
+      "heading": "What customers should watch",
+      "paragraphs": [
+        "Prospective users should wait for technical documentation covering data retention, model access, administrator controls, security boundaries, pricing and support. The first customer pilots and availability details will show whether Meta Enterprise Platform is a unified service or primarily a sales umbrella for existing tools."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Meta Newsroom: Launching Meta Enterprise Platform",
+      "url": "https://about.fb.com/news/2026/09/launching-meta-enterprise-platform/"
+    },
+    {
+      "title": "Reuters: Meta taps MongoDB CEO Desai to drive enterprise AI push",
+      "url": "https://www.reuters.com/technology/mongodb-ceo-desai-steps-down-lead-metas-enterprise-platform-2026-09-28/"
+    }
+  ]
+}
