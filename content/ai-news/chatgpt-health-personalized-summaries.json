@@ -1,0 +1,48 @@
+{
+  "slug": "chatgpt-health-personalized-summaries",
+  "title": "ChatGPT Health adds personalized summaries for charts, metrics and records",
+  "description": "Eligible U.S. users can now select a health chart, metric or record to receive a personalized explanation based on connected data.",
+  "dek": "OpenAI has added prompt-free summaries inside ChatGPT Health while keeping the feature limited to eligible U.S. adults on web and iOS.",
+  "category": "AI tools",
+  "publishedAt": "2026-09-29T01:29:00.000Z",
+  "updatedAt": "2026-09-29T01:29:00.000Z",
+  "author": "SpeechPocket Newsroom",
+  "sourceEventDate": "2026-09-28",
+  "takeaways": [
+    "Users can select a health chart, metric or record to generate a personalized explanation without writing a prompt.",
+    "The rollout is limited to eligible U.S. adults on web and iOS and may not appear immediately.",
+    "OpenAI says Health supports understanding records but is not intended for diagnosis or treatment."
+  ],
+  "sections": [
+    {
+      "heading": "A new way to read connected health data",
+      "paragraphs": [
+        "OpenAI added personalized summaries to ChatGPT Health on September 28. Eligible users can select a chart, metric or synced record in the Health tab to receive an explanation and view trends over time without first writing a prompt. The feature can draw from information the user chooses to connect, including Apple Health and supported U.S. medical-record providers.",
+        "The rollout covers logged-in ChatGPT Free, Go, Plus and Pro users in the United States who are at least 18. It works on web and iOS, requires an iPhone for Apple Health, and may take several weeks to reach every eligible account."
+      ]
+    },
+    {
+      "heading": "Important limits and privacy controls",
+      "paragraphs": [
+        "OpenAI says Health is designed to support understanding, not diagnose or treat conditions, and it cannot write information back to connected records. The company also says connected medical records, Apple Health data and conversations using that data are not used to train foundation models or target advertising.",
+        "Users control which accounts are connected and can remove them from the Health tab. OpenAI says synced data is deleted from its systems within 30 days after disconnection, while information already copied into conversation history remains until those chats are deleted."
+      ]
+    },
+    {
+      "heading": "What users should check",
+      "paragraphs": [
+        "Before connecting records, users should review permissions, memory settings and the Health Privacy Notice, then confirm that any summary matches the underlying source. The feature is a navigation aid for personal data, not a substitute for a clinician or urgent care."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "OpenAI: ChatGPT release notes",
+      "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
+    },
+    {
+      "title": "OpenAI: Health in ChatGPT",
+      "url": "https://help.openai.com/en/articles/20001036-health-in-chatgpt"
+    }
+  ]
+}
