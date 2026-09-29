@@ -1,14 +1,16 @@
 "use client";
 
 import {useEffect, useMemo, useRef, useState} from "react";
-import {ArrowDownToLine, ArrowRight, Check, Copy, FileAudio, Mic, Search, ShieldCheck, Sparkles, Square, Upload, Volume2, X} from "lucide-react";
+import {ArrowDownToLine, Check, FileAudio, Mic, Search, ShieldCheck, Sparkles, Square, Upload, Volume2, X} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {NativeSelect, NativeSelectOption} from "@/components/ui/native-select";
-import SiteChrome from "@/components/site-chrome";
+import ToolPageLayout from "@/components/tool-page-layout";
+import ProcessingNote from "@/components/processing-note";
+import ResultActions from "@/components/result-actions";
 import {advancedLink, advancedTools, type AdvancedTool} from "@/lib/advanced-tools";
 import {audioLanguages} from "@/lib/tool-data";
 import {uploadAndProcess} from "@/lib/client-upload";
-import {MAX_UPLOAD_BYTES} from "@/lib/upload-constants";
+import {getUploadContentType, MAX_UPLOAD_BYTES} from "@/lib/upload-constants";
 import {trackToolCompleted} from "@/lib/client-analytics";
 
 type AnalysisResult = {
@@ -24,12 +26,22 @@ type AnalysisResult = {
   [key: string]: unknown;
 };
 
-function download(contents: string, filename: string) {
-  const anchor = document.createElement("a");
-  anchor.href = URL.createObjectURL(new Blob([contents], {type: "text/plain;charset=utf-8"}));
-  anchor.download = filename;
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(anchor.href), 1_000);
+function resultLines(value: unknown, label = ""): string[] {
+  if (value === null || value === undefined || value === "") return [];
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    const readable = typeof value === "number" && /confidence|score/i.test(label) && value >= 0 && value <= 1
+      ? `${Math.round(value * 100)}%`
+      : String(value);
+    return [label ? `${label}: ${readable}` : readable];
+  }
+  if (Array.isArray(value)) return value.flatMap((item) => resultLines(item, label));
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).flatMap(([key, item]) => {
+      const title = key.replaceAll(/([a-z])([A-Z])/g, "$1 $2").replaceAll(/[_-]+/g, " ").replace(/^./, (character) => character.toUpperCase());
+      return resultLines(item, title);
+    });
+  }
+  return [];
 }
 
 async function validateAudioDuration(file: File) {
@@ -44,18 +56,32 @@ async function validateAudioDuration(file: File) {
   });} finally {URL.revokeObjectURL(url);}
 }
 
-function ResultPanel({result}: {result: AnalysisResult}) {
-  const [copied, setCopied] = useState(false);
-  const readable = result.transcript || JSON.stringify(result, null, 2);
+function ResultPanel({result, sourceAudioUrl}: {result: AnalysisResult; sourceAudioUrl?: string}) {
+  const [transcript, setTranscript] = useState(result.transcript || "");
   const detected = result.channels?.map((channel) => channel.detectedLanguage).filter(Boolean).join(", ");
   const utterances = result.utterances || [];
+  const insightGroups = [
+    {label: "Summary", value: result.summary},
+    {label: "Sentiment", value: result.sentiments},
+    {label: "Intent", value: result.intents},
+    {label: "Topics", value: result.topics},
+    {label: "Named entities", value: result.entities},
+  ].filter((group) => group.value !== null && group.value !== undefined);
+  const reviewWords = result.channels?.flatMap((channel) => channel.words
+    .filter((word) => word.confidence !== null && word.confidence < 0.75)
+    .map((word) => ({...word, channel: channel.channel}))) || [];
+  const channelLines = result.channels?.filter((channel) => channel.transcript) || [];
+  const readable = transcript || insightGroups.flatMap((group) => [group.label, ...resultLines(group.value)]).join("\n");
   return <div className="result advanced-result" aria-live="polite">
     <div className="result-heading"><div><span>Result</span><strong>{detected ? `Detected language: ${detected}` : "Your result is ready"}</strong></div><Check size={21}/></div>
-    {result.transcript && <pre>{result.transcript}</pre>}
+    {sourceAudioUrl && <div className="audio-player"><audio src={sourceAudioUrl} controls preload="metadata" aria-label="Original recording"/></div>}
+    {result.transcript && <textarea className="result-editor" aria-label="Editable transcript" value={transcript} onChange={(event) => setTranscript(event.target.value)}/>}
     {utterances.length > 0 && <div className="utterance-list">{utterances.map((item, index) => <div key={index}><b>Speaker {(item.speaker ?? 0) + 1}</b><span>{item.transcript}</span></div>)}</div>}
-    {Boolean(result.summary || result.sentiments || result.intents || result.topics || result.entities) && <details className="insight-details" open><summary>Intelligence results</summary><pre>{JSON.stringify({summary: result.summary, sentiments: result.sentiments, intents: result.intents, topics: result.topics, entities: result.entities}, null, 2)}</pre></details>}
-    {result.channels?.some((channel) => channel.words.length > 0) && <details className="insight-details"><summary>Word-level metadata</summary><pre>{JSON.stringify(result.channels.flatMap((channel) => channel.words), null, 2)}</pre></details>}
-    <div className="action-row"><Button variant="outline" onClick={async () => {await navigator.clipboard.writeText(readable); setCopied(true); setTimeout(() => setCopied(false), 1_500);}}>{copied ? <Check/> : <Copy/>}{copied ? "Copied" : "Copy text"}</Button><Button variant="outline" onClick={() => download(readable, "voculo-result.txt")}><ArrowDownToLine/>Download</Button></div>
+    {insightGroups.map((group) => <section className="insight-group" key={group.label}><h3>{group.label}</h3><ul>{resultLines(group.value).map((line, index) => <li key={`${group.label}-${index}`}>{line}</li>)}</ul></section>)}
+    {channelLines.length > 1 && <details className="insight-details"><summary>Separate channel transcripts</summary>{channelLines.map((channel) => <section className="channel-transcript" key={channel.channel}><h3>Channel {channel.channel + 1}</h3><p>{channel.transcript}</p></section>)}</details>}
+    {reviewWords.length > 0 && <details className="insight-details"><summary>{reviewWords.length} words may need review</summary><ul>{reviewWords.map((word, index) => <li key={`${word.channel}-${word.start}-${index}`}><strong>{word.word}</strong><span>{word.start === null ? "Time unavailable" : `${word.start.toFixed(1)} seconds`}</span><span>{word.confidence === null ? "Confidence unavailable" : `${Math.round(word.confidence * 100)}% confidence`}</span></li>)}</ul></details>}
+    {channelLines.length === 1 && channelLines[0].words.length > 0 && <p className="muted-line">Word timing and confidence are available for this transcript.</p>}
+    {readable && <ResultActions contents={readable} filename="voculo-result.txt" downloadLabel="Download result"/>}
     <p className="review-note">Review names, numbers and low-confidence words before relying on this result.</p>
   </div>;
 }
@@ -73,6 +99,8 @@ function AudioAnalyzer({tool}: {tool: AdvancedTool}) {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [sourceAudioUrl, setSourceAudioUrl] = useState("");
+  useEffect(() => () => {if (sourceAudioUrl) URL.revokeObjectURL(sourceAudioUrl);}, [sourceAudioUrl]);
 
   async function run() {
     if (!file) return setError("Choose an audio or video file first.");
@@ -90,9 +118,11 @@ function AudioAnalyzer({tool}: {tool: AdvancedTool}) {
 
   async function chooseFile(next: File | null) {
     setFile(null); setResult(null); setError("");
+    if (sourceAudioUrl) URL.revokeObjectURL(sourceAudioUrl);
+    setSourceAudioUrl("");
     if (!next) return;
-    if (next.size > MAX_UPLOAD_BYTES) return setError("This file cannot be processed here. Choose another file.");
-    if (!next.type.startsWith("audio/") && !next.type.startsWith("video/") && !/\.(mp3|m4a|wav|mp4|ogg|webm)$/i.test(next.name)) return setError("This file type is not supported. Choose MP3, M4A, WAV, MP4, OGG or WebM.");
+    if (next.size > MAX_UPLOAD_BYTES) return setError("Audio uploads must be 4.5 MB or smaller.");
+    if (!getUploadContentType(next)) return setError("This file type is not supported. Choose MP3, M4A, WAV, MP4, OGG or WebM.");
     setFile(next); setValidating(true);
     try {if (await validateAudioDuration(next) > 120) {setFile(null); setError("This recording cannot be processed here. Try a shorter clip.");}}
     catch (reason) {setFile(null); setError(reason instanceof Error ? reason.message : "We could not validate this recording.");}
@@ -102,10 +132,10 @@ function AudioAnalyzer({tool}: {tool: AdvancedTool}) {
   const needsLanguage = !["audio-language-detector", "mixed-language-transcription"].includes(tool.slug);
   const actionLabels: Record<string, string> = {"audio-language-detector": "Detect language", "mixed-language-transcription": "Transcribe languages", "speaker-diarization": "Label speakers", "multichannel-call-transcription": "Separate channels", "verbatim-transcription": "Create verbatim transcript", "transcript-redactor": "Redact transcript", "vocabulary-transcription": "Use custom vocabulary", "search-inside-audio": "Find phrase", "transcript-confidence-checker": "Check transcript", "audio-intelligence": "Analyze recording"};
   return <section className="editor-card advanced-editor" aria-label={tool.title}>
-    <div className="card-top"><strong>Upload a recording</strong><small>MP3, WAV, M4A, MP4, OGG or WebM</small></div>
+    <div className="card-top"><strong>Upload a recording</strong><small>Maximum file size: 4.5 MB</small></div>
     <div className="card-body">
-      {!file ? <label className="dropzone"><Upload size={25} aria-hidden="true"/><strong>Drop audio here or choose a file</strong><span>MP3, WAV, M4A, MP4, OGG or WebM</span><input type="file" aria-label="Choose audio or video" accept="audio/*,video/mp4" onChange={(event) => {const next = event.target.files?.[0] || null; event.currentTarget.value = ""; void chooseFile(next);}}/></label> : <div className="file-summary"><div><FileAudio/><span><b>{file.name}</b><small>{(file.size / 1024 / 1024).toFixed(1)} MB{validating ? " · checking duration…" : " · ready"}</small></span></div><button type="button" onClick={() => {setFile(null); setResult(null); setError("");}} aria-label={`Remove ${file.name}`}><X size={18}/></button></div>}
-      <div className="privacy-note"><strong>Before you upload</strong><p>A temporary copy is stored by Vercel and sent to our speech provider. It is deleted after processing; its unlisted link can be opened until then. Do not upload confidential recordings.</p><details><summary>How processing works</summary><p>Voculo uses temporary Vercel storage and sends the file to the provider, then returns the result to this browser. <a href="/privacy#uploads">Read the privacy details.</a></p></details></div>
+      {!file ? <label className="dropzone"><Upload size={25} aria-hidden="true"/><strong>Drop audio here or choose a file</strong><span>MP3, WAV, M4A, MP4, OGG or WebM · Maximum file size: 4.5 MB</span><input type="file" aria-label="Choose audio or video" accept="audio/*,video/mp4" onChange={(event) => {const next = event.target.files?.[0] || null; event.currentTarget.value = ""; void chooseFile(next);}}/></label> : <div className="file-summary"><div><FileAudio/><span><b>{file.name}</b><small>{(file.size / 1024 / 1024).toFixed(1)} MB{validating ? " · checking duration…" : " · ready"}</small></span></div><button type="button" onClick={() => {setFile(null); setResult(null); setError(""); if (sourceAudioUrl) URL.revokeObjectURL(sourceAudioUrl); setSourceAudioUrl("");}} aria-label={`Remove ${file.name}`}><X size={18}/></button></div>}
+      <ProcessingNote title="Before you upload" details={<p>The recording passes through a Voculo Function to Deepgram. Voculo does not save it to a file store. <a href="/privacy#uploads">Read the privacy details.</a></p>}>Your recording is sent only after you start. Avoid confidential recordings.</ProcessingNote>
       <details className="advanced-options" open={tool.slug === "search-inside-audio" || tool.slug === "transcript-redactor"}><summary>Options</summary><div className="advanced-controls">
         {needsLanguage && <label><span>Spoken language</span><NativeSelect value={language} onChange={(event) => setLanguage(event.target.value)}>{audioLanguages.map((item) => <NativeSelectOption value={item.code} key={item.code}>{item.label}</NativeSelectOption>)}</NativeSelect></label>}
         {tool.slug === "transcript-redactor" && <label><span>Information to remove</span><NativeSelect value={redaction} onChange={(event) => setRedaction(event.target.value)}><NativeSelectOption value="numbers">Numbers</NativeSelectOption><NativeSelectOption value="pii">Personal information</NativeSelectOption><NativeSelectOption value="pci">Payment-card information</NativeSelectOption><NativeSelectOption value="phi">Health information</NativeSelectOption></NativeSelect></label>}
@@ -116,7 +146,7 @@ function AudioAnalyzer({tool}: {tool: AdvancedTool}) {
       <div className="action-row"><Button className="primary-action" disabled={!file || busy || validating} onClick={run}><FileAudio/>{busy ? uploadProgress !== null && uploadProgress < 100 ? `Uploading ${uploadProgress}%…` : "Processing your recording…" : actionLabels[tool.slug] || "Process recording"}</Button><span className="muted-line">No account required</span></div>
       <div className="status-region" aria-live="polite">{validating && <p>Checking this file…</p>}{busy && <p>{uploadProgress !== null && uploadProgress < 100 ? `Uploading your recording… ${uploadProgress}%` : "Processing your recording…"}</p>}</div>
       {error && <div className="error" role="alert">{error}</div>}
-      {result && <ResultPanel result={result}/>} 
+      {result && <ResultPanel key={result.transcript || JSON.stringify(result)} result={result} sourceAudioUrl={sourceAudioUrl}/>}
     </div>
   </section>;
 }
@@ -136,7 +166,7 @@ function TextAnalyzer() {
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Text analysis failed."); }
     finally { setBusy(false); }
   }
-  return <section className="editor-card advanced-editor"><div className="card-top"><strong>Paste text to analyze</strong><small>20–20,000 characters</small></div><div className="card-body"><label className="field-label" htmlFor="intelligence-text">Text</label><textarea id="intelligence-text" className="input-lg" value={text} maxLength={20_000} onChange={(event) => setText(event.target.value)} placeholder="Paste a review, call transcript, article, or support conversation…"/><div className="muted-line counter">{text.length.toLocaleString()} / 20,000</div><div className="privacy-note"><strong>How text is processed</strong><p>Your text is sent to our analysis provider to return the summary and themes. Voculo does not publish it or save it in a user account.</p></div><div className="action-row"><Button className="primary-action" disabled={busy || text.trim().length < 20} onClick={run}><Sparkles/>{busy ? "Analyzing text…" : "Analyze text"}</Button><span className="muted-line">No account required</span></div>{error && <div className="error" role="alert">{error}</div>}{result && <ResultPanel result={result}/>}</div></section>;
+  return <section className="editor-card advanced-editor"><div className="card-top"><strong>Paste text to analyze</strong><small>20–20,000 characters</small></div><div className="card-body"><label className="field-label" htmlFor="intelligence-text">Text</label><textarea id="intelligence-text" className="input-lg" value={text} maxLength={20_000} onChange={(event) => setText(event.target.value)} placeholder="Paste a review, call transcript, article, or support conversation…"/><div className="muted-line counter">{text.length.toLocaleString()} / 20,000</div><ProcessingNote title="How text is processed" details={<p>Your text is sent to the analysis provider for this request. <a href="/privacy#provider-processing">Read the privacy details.</a></p>}>Your text is not published or saved in a user account.</ProcessingNote><div className="action-row"><Button className="primary-action" disabled={busy || text.trim().length < 20} onClick={run}><Sparkles/>{busy ? "Analyzing text…" : "Analyze text"}</Button><span className="muted-line">No account required</span></div>{error && <div className="error" role="alert">{error}</div>}{result && <ResultPanel result={result}/>}</div></section>;
 }
 
 function VoiceStudio() {
@@ -145,7 +175,7 @@ function VoiceStudio() {
   const [audio, setAudio] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   useEffect(() => () => {if (audio) URL.revokeObjectURL(audio);}, [audio]);
   async function run() {setBusy(true); setError(""); if (audio) URL.revokeObjectURL(audio); setAudio(""); try {const response = await fetch("/api/deepgram/speak", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text, language, engine, speed, expressivity, word, ipa})}); if (!response.ok) {const data = await response.json().catch(() => ({})) as {error?: string}; throw new Error(data.error || "Voice generation failed.");} setAudio(URL.createObjectURL(await response.blob())); trackToolCompleted("voice-studio", "speech");} catch (reason) {setError(reason instanceof Error ? reason.message : "Voice generation failed.");} finally {setBusy(false);}}
-  return <section className="editor-card advanced-editor"><div className="card-top"><strong>Create a voice track</strong><small>Up to 2,000 characters</small></div><div className="card-body"><label className="field-label" htmlFor="voice-text">Text</label><textarea id="voice-text" className="input-lg" value={text} onChange={(event) => setText(event.target.value)} maxLength={2_000} placeholder="Write what the voice should say…"/><div className="muted-line counter">{text.length.toLocaleString()} / 2,000</div><div className="advanced-controls two-column"><label><span>Voice style</span><NativeSelect value={engine} onChange={(event) => setEngine(event.target.value)}><NativeSelectOption value="aura">Clear narration</NativeSelectOption><NativeSelectOption value="flux">Expressive delivery</NativeSelectOption></NativeSelect></label><label><span>Language</span><NativeSelect value={language} disabled={engine === "flux"} onChange={(event) => setLanguage(event.target.value)}>{audioLanguages.map((item) => <NativeSelectOption value={item.code} key={item.code}>{item.label}</NativeSelectOption>)}</NativeSelect></label></div><details className="advanced-options"><summary>Advanced voice controls</summary><div className="advanced-controls two-column"><label><span>Speed: {speed.toFixed(2)}×</span><input type="range" min={engine === "flux" ? .5 : .7} max="1.5" step="0.05" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}/></label>{engine === "flux" ? <label><span>Delivery: {expressivity.toFixed(1)}</span><input type="range" min="-2" max="2" step="0.25" value={expressivity} onChange={(event) => setExpressivity(Number(event.target.value))}/></label> : <><label><span>Word to override</span><input className="text-input" value={word} onChange={(event) => setWord(event.target.value)} placeholder="Voculo"/></label><label><span>IPA pronunciation</span><input className="text-input" value={ipa} onChange={(event) => setIpa(event.target.value)} placeholder="vəʊˈkjuːləʊ"/></label></>}</div></details><div className="privacy-note"><strong>How text is processed</strong><p>Your text is sent to our speech provider to create this audio. Review unusual names and pronunciations before using the result.</p></div><div className="action-row"><Button className="primary-action" disabled={busy || !text.trim()} onClick={run}><Volume2/>{busy ? "Creating voice track…" : "Create voice track"}</Button></div>{error && <div className="error" role="alert">{error}</div>}{audio && <div className="result"><div className="result-heading"><div><span>Result</span><strong>Your voice track is ready</strong></div><Check size={20}/></div><div className="audio-player"><audio controls src={audio} aria-label="Generated voice track"/></div><a className="download-link" href={audio} download="voculo-voice.mp3"><ArrowDownToLine size={17}/>Download audio</a><p className="review-note">Synthetic voices can mispronounce unusual words and names. Check the result before publishing it.</p></div>}</div></section>;
+  return <section className="editor-card advanced-editor"><div className="card-top"><strong>Create a voice track</strong><small>Up to 2,000 characters</small></div><div className="card-body"><label className="field-label" htmlFor="voice-text">Text</label><textarea id="voice-text" className="input-lg" value={text} onChange={(event) => setText(event.target.value)} maxLength={2_000} placeholder="Write what the voice should say…"/><div className="muted-line counter">{text.length.toLocaleString()} / 2,000</div><div className="advanced-controls two-column"><label><span>Voice style</span><NativeSelect value={engine} onChange={(event) => setEngine(event.target.value)}><NativeSelectOption value="aura">Clear narration</NativeSelectOption><NativeSelectOption value="flux">Expressive delivery</NativeSelectOption></NativeSelect></label><label><span>Language</span><NativeSelect value={language} disabled={engine === "flux"} onChange={(event) => setLanguage(event.target.value)}>{audioLanguages.map((item) => <NativeSelectOption value={item.code} key={item.code}>{item.label}</NativeSelectOption>)}</NativeSelect></label></div><details className="advanced-options"><summary>Advanced voice controls</summary><div className="advanced-controls two-column"><label><span>Speed: {speed.toFixed(2)}×</span><input type="range" min={engine === "flux" ? .5 : .7} max="1.5" step="0.05" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}/></label>{engine === "flux" ? <label><span>Delivery: {expressivity.toFixed(1)}</span><input type="range" min="-2" max="2" step="0.25" value={expressivity} onChange={(event) => setExpressivity(Number(event.target.value))}/></label> : <><label><span>Word to override</span><input className="text-input" value={word} onChange={(event) => setWord(event.target.value)} placeholder="Voculo"/></label><label><span>IPA pronunciation</span><input className="text-input" value={ipa} onChange={(event) => setIpa(event.target.value)} placeholder="vəʊˈkjuːləʊ"/></label></>}</div></details><ProcessingNote title="How text is processed" details={<p>Your text is sent to the speech provider for generation. <a href="/privacy#provider-processing">Read the privacy details.</a></p>}>Review unusual names and pronunciations before using the result.</ProcessingNote><div className="action-row"><Button className="primary-action" disabled={busy || !text.trim()} onClick={run}><Volume2/>{busy ? "Creating voice track…" : "Create voice track"}</Button></div>{error && <div className="error" role="alert">{error}</div>}{audio && <div className="result"><div className="result-heading"><div><span>Result</span><strong>Your voice track is ready</strong></div><Check size={20}/></div><div className="audio-player"><audio controls src={audio} aria-label="Generated voice track"/></div><a className="download-link" href={audio} download="voculo-voice.mp3"><ArrowDownToLine size={17}/>Download audio</a><p className="review-note">Synthetic voices can mispronounce unusual words and names. Check the result before publishing it.</p></div>}</div></section>;
 }
 
 function LiveRecorder({flux}: {flux: boolean}) {
@@ -175,7 +205,7 @@ function LiveRecorder({flux}: {flux: boolean}) {
   }
   const listening = status === "Listening";
   const pending = status === "Requesting microphone" || status === "Connecting";
-  return <section className="editor-card advanced-editor"><div className="card-top"><strong>{flux ? "Review conversation turns" : "Transcribe your microphone"}</strong><small>{status}</small></div><div className="card-body"><div className="privacy-note"><strong>Before you start</strong><p>While this tool is active, microphone audio is streamed to our speech provider for transcription. Stop at any time.</p></div><div className="live-display" aria-live="polite"><div className={`live-orb ${listening ? "active" : ""}`}><Mic/></div><div><span>Microphone status</span><strong>{status}</strong><small>{listening ? "Speak near your microphone. Your words will appear below." : pending ? "Waiting for microphone and service access…" : "Allow microphone access to begin."}</small></div></div><div className="action-row">{!listening ? <Button className="primary-action" disabled={pending} onClick={start}><Mic/>{pending ? "Starting…" : status === "Microphone blocked" || status === "Connection lost" ? "Try again" : status === "Stopped" ? "Start again" : "Allow microphone"}</Button> : <Button variant="destructive" onClick={stop}><Square/>Stop transcription</Button>}</div>{error && <div className="error" role="alert">{error}</div>}<div className="result live-transcript"><div className="result-heading"><div><span>Live transcript</span><strong>{transcript || interim ? "Transcript in progress" : "Speak near your microphone"}</strong></div></div><pre>{transcript || interim || "Your words will appear here."}{interim && transcript ? ` ${interim}` : ""}</pre>{flux && events.length > 0 && <details className="insight-details"><summary>Conversation events</summary><div className="event-row">{events.map((event, index) => <span key={`${event}-${index}`}>{event}</span>)}</div></details>}</div></div></section>;
+  return <section className="editor-card advanced-editor"><div className="card-top"><strong>{flux ? "Review conversation turns" : "Transcribe your microphone"}</strong><small>{status}</small></div><div className="card-body"><ProcessingNote title="Before you start" details={<p>Live audio is sent directly to the speech provider while the session is active. <a href="/privacy#provider-processing">Read the privacy details.</a></p>}>Microphone audio is streamed for transcription while this tool is active. Stop at any time.</ProcessingNote><div className="live-display" aria-live="polite"><div className={`live-orb ${listening ? "active" : ""}`}><Mic/></div><div><span>Microphone status</span><strong>{status}</strong><small>{listening ? "Speak near your microphone. Your words will appear below." : pending ? "Waiting for microphone and service access…" : "Allow microphone access to begin."}</small></div></div><div className="action-row">{!listening ? <Button className="primary-action" disabled={pending} onClick={start}><Mic/>{pending ? "Starting…" : status === "Microphone blocked" || status === "Connection lost" ? "Try again" : status === "Stopped" ? "Start again" : "Allow microphone"}</Button> : <Button variant="destructive" onClick={stop}><Square/>Stop transcription</Button>}</div>{error && <div className="error" role="alert">{error}</div>}<div className="result live-transcript"><div className="result-heading"><div><span>Live transcript</span><strong>{transcript || interim ? "Transcript in progress" : "Speak near your microphone"}</strong></div></div><pre>{transcript || interim || "Your words will appear here."}{interim && transcript ? ` ${interim}` : ""}</pre>{transcript && <ResultActions contents={transcript} filename="voculo-live-transcript.txt" downloadLabel="Download transcript"/>}{flux && events.length > 0 && <details className="insight-details"><summary>Conversation events</summary><div className="event-row">{events.map((event, index) => <span key={`${event}-${index}`}>{event}</span>)}</div></details>}</div></div></section>;
 }
 
 function EnterprisePanel() {return <section className="editor-card advanced-editor"><div className="card-top"><strong>For teams evaluating deployment</strong><small>Advanced planning guide</small></div><div className="card-body"><div className="enterprise-banner"><b>This is not a self-serve free tool.</b><p>Use this page to understand the requirements involved before choosing a commercial speech deployment.</p></div><div className="enterprise-grid"><div><ShieldCheck/><h3>Custom speech model</h3><p>Define terminology, accents, acoustic conditions, evaluation data, and domain-specific recordings.</p></div><div><ShieldCheck/><h3>Controlled infrastructure</h3><p>Review supported cloud, data-centre, regional-processing, security, and operational requirements.</p></div></div><p className="muted-line">Voculo does not currently offer a sales or deployment service. Verify availability and commercial terms directly with the speech provider.</p></div></section>}
@@ -183,5 +213,14 @@ function EnterprisePanel() {return <section className="editor-card advanced-edit
 export default function AdvancedWorkbench({tool}: {tool: AdvancedTool}) {
   const related = useMemo(() => advancedTools.filter((item) => item.slug !== tool.slug && item.kind !== "enterprise").slice(0, 3), [tool.slug]);
   const category = tool.kind === "tts" ? "Create audio" : tool.kind === "text" ? "Analyze text" : tool.kind === "enterprise" ? "Advanced deployment" : tool.kind === "live" ? "Live audio" : "Analyze audio";
-  return <SiteChrome active="tools"><main className="page-frame tool-page" id="main-content"><nav className="breadcrumbs" aria-label="Breadcrumb"><a href="/tools">Tools</a><span>/</span><span>{category}</span><span>/</span><strong>{tool.shortTitle}</strong></nav><header className="tool-page-header advanced-title"><span className="section-label">Voculo audio tool</span><h1>{tool.title}</h1><p>{tool.description}</p><small>{tool.detail}</small></header><div className="advanced-layout" id="tool-workspace"><div>{tool.kind === "audio" && <AudioAnalyzer tool={tool}/>} {tool.kind === "text" && <TextAnalyzer/>} {tool.kind === "tts" && <VoiceStudio/>} {tool.kind === "live" && <LiveRecorder flux={tool.slug === "conversation-lab"}/>} {tool.kind === "enterprise" && <EnterprisePanel/>}<section className="seo-copy"><h2>What you’ll get</h2><p>{tool.description}</p><details className="advanced-options"><summary>Output and processing details</summary><ul>{tool.capabilities.map((item) => <li key={item}>{item}</li>)}</ul><p>This request is handled by a third-party speech provider. Provider and model details are available in the <a href="/privacy#provider-processing">privacy policy</a>.</p></details><h2>Review before you use it</h2><p>{tool.slug === "transcript-redactor" ? "Automated redaction can miss or incorrectly change sensitive information. Review the full transcript before sharing." : "Review names, numbers, sensitive information, and low-confidence words before relying on the output."}</p></section></div><aside className="advanced-sidebar"><span className="sidebar-label">Next steps</span>{related.map((item) => <a href={advancedLink(item.slug)} key={item.slug}><b>{item.shortTitle}</b><span>{item.detail}</span><ArrowRight size={16}/></a>)}<a className="news-promo" href="/tools"><Sparkles/><b>Browse all tools</b><span>Find transcription, audio creation, analysis, and conversion tools.</span></a></aside></div></main></SiteChrome>;
+  return <ToolPageLayout title={tool.title} description={tool.description} detail={tool.detail} category={category} related={related.map((item) => ({href: advancedLink(item.slug),title: item.shortTitle,description: item.detail,reason: "Related tool"}))}>
+    <div className="advanced-tool-content">
+      {tool.kind === "audio" && <AudioAnalyzer tool={tool}/>}
+      {tool.kind === "text" && <TextAnalyzer/>}
+      {tool.kind === "tts" && <VoiceStudio/>}
+      {tool.kind === "live" && <LiveRecorder flux={tool.slug === "conversation-lab"}/>}
+      {tool.kind === "enterprise" && <EnterprisePanel/>}
+      <section className="seo-copy"><h2>What you’ll get</h2><p>{tool.description}</p><details className="advanced-options"><summary>Output and processing details</summary><ul>{tool.capabilities.map((item) => <li key={item}>{item}</li>)}</ul><p>This request is handled by a third-party speech provider. Provider and model details are available in the <a href="/privacy#provider-processing">privacy policy</a>.</p></details><h2>Review before you use it</h2><p>{tool.slug === "transcript-redactor" ? "Automated redaction can miss or incorrectly change sensitive information. Review the full transcript before sharing." : "Review names, numbers, sensitive information, and low-confidence words before relying on the output."}</p></section>
+    </div>
+  </ToolPageLayout>;
 }

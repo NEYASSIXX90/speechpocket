@@ -24,7 +24,7 @@ const candidates=(searchData.results||[]).filter(item=>item.url&&!previousUrls.h
 if(!candidates.length){console.log("No fresh, non-duplicate news candidate found.");process.exit(0);}
 
 const sourcePack=candidates.map((item,index)=>({id:index+1,title:item.title,url:item.url,publishedDate:item.publishedDate||null,author:item.author||null,evidence:(item.highlights||[]).join("\n")||String(item.text||"").slice(0,5000)}));
-const prompt=`You are the editor of SpeechPocket AI Tools News. Select ONE genuinely important, recent AI-tool story from the supplied evidence and write an original, useful report for people who use AI software.
+const prompt=`You are the editor of Voculo AI Notes. Select ONE genuinely important, recent AI-tool story from the supplied evidence and write an original, useful report for people who use AI software.
 
 Hard rules:
 - Use only facts supported by the supplied evidence. Never invent quotes, prices, dates, availability, benchmarks, or features.
@@ -32,7 +32,7 @@ Hard rules:
 - Do not copy source sentences. Do not produce a generic stitched summary.
 - Add original analysis: who benefits, limitations, practical consequences, and what readers should watch next.
 - Reject rumors, politics without a product impact, funding-only stories, celebrity stories, and vague opinion pieces.
-- Do not mention SpeechPocket unless there is a natural, relevant connection.
+- Do not mention Voculo unless there is a natural, relevant connection.
 - 700-1,100 words total. Plain English. No hype.
 - Sources in the output must be chosen only from the supplied URLs.
 - If no story meets the standard, return {"skip":true,"reason":"..."}.
@@ -61,6 +61,6 @@ if(wordCount<650)throw new Error(`Article failed depth gate: ${wordCount} words`
 if(sourceUrls.length<1||sourceUrls.some(url=>!allowedUrls.has(url)))throw new Error("Article contains an unverified source URL");
 article.publishedAt=now.toISOString();
 article.updatedAt=now.toISOString();
-article.author="SpeechPocket Editorial";
+article.author="Voculo Editorial";
 await fs.writeFile(path.join(contentDir,`${article.slug}.json`),JSON.stringify(article,null,2)+"\n","utf8");
 console.log(`Published draft: ${article.slug} (${wordCount} words)`);

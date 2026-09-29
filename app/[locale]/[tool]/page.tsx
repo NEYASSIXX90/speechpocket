@@ -12,7 +12,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  const advanced=getAdvancedTool(slug);
  if((!tool&&!advanced)||!locales.includes(locale as typeof locales[number])||(advanced&&locale!=="en")) return {};
  const frenchEntry=locale==="fr"&&slug==="audio-to-text";
- const title=advanced?`${advanced.shortTitle} — free online tool`:frenchEntry?"Transcription audio en texte gratuit":tool!.title;
+ const title=advanced?advanced.shortTitle:frenchEntry?"Transcription audio en texte gratuit":tool!.title;
  const description=advanced?advanced.description:frenchEntry?"Transcrivez un court enregistrement audio français et obtenez un texte modifiable.":tool!.description;
  return {title,description,alternates:{canonical:linkFor(slug,locale)},robots:{index:(locale==="en"||frenchEntry)&&slug!=="enterprise-speech",follow:true},openGraph:{title,description,type:"website",url:linkFor(slug,locale)}};
 }
@@ -20,6 +20,19 @@ export default async function ToolPage({params}:Props){
  const {locale,tool}=await params;
  const advanced=getAdvancedTool(tool);
  if((!tools.some(x=>x.slug===tool)&&!advanced)||!locales.includes(locale as typeof locales[number])||(advanced&&locale!=="en")) notFound();
- if(advanced)return <AdvancedWorkbench tool={advanced}/>;
- return <Workbench initialTool={tool} initialLocale={locale}/>;
+ const canonical = `${process.env.NEXT_PUBLIC_SITE_URL || "https://speechpocket.vercel.app"}/${locale}/${tool}`;
+ const entry = advanced || tools.find((item) => item.slug === tool)!;
+ const description = entry.description;
+ const schema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: entry.title,
+  applicationCategory: "MultimediaApplication",
+  operatingSystem: "Web",
+  description,
+  url: canonical,
+ };
+ const structuredData = <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema).replaceAll("<", "\\u003c")}}/>;
+ if(advanced)return <><AdvancedWorkbench tool={advanced}/>{structuredData}</>;
+ return <><Workbench initialTool={tool} initialLocale={locale}/>{structuredData}</>;
 }

@@ -1,4 +1,4 @@
-import {removeTemporaryBlob, isVoculoTemporaryBlobUrl} from "@/lib/temporary-upload";
+import {readAudioRequest} from "@/lib/audio-upload";
 import {reserveUsage} from "@/lib/usage-limit";
 
 export const runtime = "nodejs";
@@ -20,40 +20,37 @@ function makeSrt(words: Word[]) {
 const fail = (error: string, status: number) => Response.json({error}, {status, headers: {"Cache-Control": "no-store"}});
 
 export async function POST(request: Request) {
-  if (Number(request.headers.get("content-length") || 0) > 8_000) return fail("The processing request is too large.", 413);
-  let body: {blobUrl?: unknown; language?: unknown};
-  try { body = await request.json(); } catch { return fail("The processing request could not be read.", 400); }
-  if (!isVoculoTemporaryBlobUrl(body.blobUrl)) return fail("Choose an audio file and try again.", 400);
-  const blobUrl = body.blobUrl;
-  if (typeof body.language !== "string" || !["en", "fr", "es", "de", "it", "nl"].includes(body.language)) {
-    await removeTemporaryBlob(blobUrl);
-    return fail("Choose a supported spoken language.", 400);
+  let audio: Awaited<ReturnType<typeof readAudioRequest>>;
+  try { audio = await readAudioRequest(request); }
+  catch (error) {
+    const message = error instanceof Error ? error.message : "The audio could not be read.";
+    return fail(message, message.includes("4.5 MB") ? 413 : 400);
   }
-  const key = process.env.DEEPGRAM_API_KEY;
-  if (!key) { await removeTemporaryBlob(blobUrl); return fail("Audio transcription is temporarily unavailable.", 503); }
 
+  const language = new URL(request.url).searchParams.get("language") || "en";
+  if (!["en", "fr", "es", "de", "it", "nl"].includes(language)) return fail("Choose a supported spoken language.", 400);
+  const key = process.env.DEEPGRAM_API_KEY;
+  if (!key) return fail("Audio transcription is temporarily unavailable.", 503);
+
+  const quota = await reserveUsage(request, "transcribe");
+  if (!quota.ok) return Response.json({error: quota.error}, {status: quota.status, headers: quota.retryAfter ? {"Retry-After": String(quota.retryAfter)} : {}});
+  const endpoint = new URL("https://api.deepgram.com/v1/listen");
+  endpoint.searchParams.set("model", "nova-3");
+  endpoint.searchParams.set("smart_format", "true");
+  endpoint.searchParams.set("language", language);
   try {
-    const quota = await reserveUsage(request, "transcribe");
-    if (!quota.ok) return Response.json({error: quota.error}, {status: quota.status, headers: quota.retryAfter ? {"Retry-After": String(quota.retryAfter)} : {}});
-    const endpoint = new URL("https://api.deepgram.com/v1/listen");
-    endpoint.searchParams.set("model", "nova-3");
-    endpoint.searchParams.set("smart_format", "true");
-    endpoint.searchParams.set("language", body.language);
     const upstream = await fetch(endpoint, {
       method: "POST",
-      headers: {Authorization: `Token ${key}`, "Content-Type": "application/json"},
-      body: JSON.stringify({url: blobUrl}),
+      headers: {Authorization: `Token ${key}`, "Content-Type": audio.contentType},
+      body: audio.bytes,
       signal: AbortSignal.timeout(120_000),
     });
-    if (!upstream.ok) return fail("Audio transcription could not be completed. Try again with another recording.", 502);
+    if (!upstream.ok) return fail("Audio transcription could not be completed. Try another recording.", 502);
     const data = await upstream.json() as {results?: {channels?: Array<{alternatives?: Array<{transcript?: string; words?: Word[]}>}>}};
     const alternative = data.results?.channels?.[0]?.alternatives?.[0];
-    const transcript = alternative?.transcript?.trim() || "";
-    return Response.json({transcript, srt: makeSrt(alternative?.words || [])}, {headers: {"Cache-Control": "no-store"}});
+    return Response.json({transcript: alternative?.transcript?.trim() || "", srt: makeSrt(alternative?.words || [])}, {headers: {"Cache-Control": "no-store"}});
   } catch (error) {
     console.error("Audio transcription failed", error instanceof Error ? error.message : "Unknown error");
     return fail("Audio processing timed out. Try again with another recording.", 504);
-  } finally {
-    await removeTemporaryBlob(blobUrl);
   }
 }

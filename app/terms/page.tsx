@@ -19,7 +19,7 @@ export default function TermsPage() {
     <p>You keep your rights to the content you submit. You are responsible for having permission to upload recordings, use any included voices, and process personal information in them. Do not submit material that is confidential, unlawful, or that you are not authorized to use.</p>
     <p>Speech recognition and generated voices can make mistakes. Review names, numbers, sensitive details, and pronunciations before you act on, share, or publish a result.</p>
     <h2>Processing providers</h2>
-    <p>Some requests are sent to Deepgram to complete speech processing. Audio uploads use temporary storage so larger files do not have to pass through the application function. See <a href="/privacy">Privacy and processing</a> for the data flow and cleanup details.</p>
+    <p>Some requests are sent to Deepgram to complete speech processing. Audio uploads pass through a Voculo Function and are limited to 4.5 MB per file. Voculo does not save recordings to persistent file storage. See <a href="/privacy">Privacy and processing</a> for details.</p>
     <h2>Fair use and restrictions</h2>
     <p>Do not use automated scripts to exhaust free processing, interfere with the service, probe for other users’ files, or bypass request limits. We may limit or block requests that threaten service reliability or provider account security.</p>
     <h2>Contact</h2>

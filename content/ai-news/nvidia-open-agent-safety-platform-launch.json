@@ -6,7 +6,7 @@
   "category": "AI tools",
   "publishedAt": "2026-09-28T23:57:00.000Z",
   "updatedAt": "2026-09-28T23:57:00.000Z",
-  "author": "SpeechPocket Newsroom",
+  "author": "Voculo Editorial",
   "sourceEventDate": "2026-09-28",
   "takeaways": [
     "OpenShell is broadly available as an open-source runtime for limiting agent access.",
@@ -24,7 +24,7 @@
     {
       "heading": "A second control layer",
       "paragraphs": [
-        "Nvidia’s Sentry design adds an out-of-band watchdog running on BlueField-4 data-processing units. Nvidia says it monitors agent activity independently and can quarantine an agent that moves beyond its assigned boundary in milliseconds. That performance statement comes from Nvidia and has not yet been independently benchmarked in the sources reviewed by SpeechPocket.",
+        "Nvidia’s Sentry design adds an out-of-band watchdog running on BlueField-4 data-processing units. Nvidia says it monitors agent activity independently and can quarantine an agent that moves beyond its assigned boundary in milliseconds. That performance statement comes from Nvidia and has not yet been independently benchmarked in the sources reviewed by Voculo.",
         "ABC News independently confirmed the launch and reported participation from companies including Anthropic, IBM, Microsoft and Palantir. Nvidia’s announcement names more than 100 organizations working with elements of the platform."
       ]
     },
