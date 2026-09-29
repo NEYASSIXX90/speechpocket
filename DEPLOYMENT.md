@@ -1,31 +1,28 @@
-# Voculo pre-launch setup
+# Voculo deployment
 
-The app code is ready for a Vercel preview, but the production integrations below must be connected before audio processing and public launch will work.
+Voculo currently keeps the existing `speechpocket.vercel.app` address until its custom domain is connected. Set `NEXT_PUBLIC_SITE_URL` to the current public address for canonical URLs, metadata, robots, and sitemaps.
 
-## Required Vercel environment variables
+## Required environment variable
 
-Set these for the Preview and Production environments in the Vercel project:
+- `DEEPGRAM_API_KEY` — server-side key used for speech processing. Do not expose it through a `NEXT_PUBLIC_*` variable.
 
-- `DEEPGRAM_API_KEY` — a rotated server-side Deepgram key. Never add it to a `NEXT_PUBLIC_*` variable.
-- `BLOB_READ_WRITE_TOKEN` — from a Vercel Blob store. Uploads use unlisted temporary Blob URLs, are sent to Deepgram, and are deleted after processing.
-- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` — shared counters for Vercel rate limits. The app fails closed if these are missing.
-- `RATE_LIMIT_SALT` — a random secret used to hash request addresses; use a different value from every provider token.
-- `CRON_SECRET` — a long random secret protecting the daily abandoned-upload cleanup route.
-- `NEXT_PUBLIC_SITE_URL=https://speechpocket.vercel.app` — keep this until the Voculo custom domain is attached in Vercel.
-- `SUPPORT_EMAIL` — an inbox that is actually monitored.
-- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` — optional Search Console HTML verification token after adding the domain property.
+## Optional environment variables
 
-The `.env.example` file contains the variable names. Do not commit real credentials.
+- `NEXT_PUBLIC_SITE_URL` — `https://speechpocket.vercel.app` until the Voculo domain is connected.
+- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` — Search Console verification token.
+- `SUPPORT_EMAIL` — monitored support address.
+- `RATE_LIMIT_SALT` — optional secret used to hash request addresses for local or Cloudflare-backed counters.
+- `EXA_API_KEY`, `NEWS_LLM_API_KEY`, `NEWS_LLM_BASE_URL`, `NEWS_LLM_MODEL` — only needed by the optional AI-notes generation workflow.
 
-## Vercel project steps
+Audio transcription and analysis accept raw audio requests up to **4.5 MB**. Files pass through a Vercel Function to Deepgram; Voculo does not persist uploaded audio. The app does not use Vercel Blob, Upstash, or a cleanup cron. On Vercel, usage counters are short-lived and local to a function instance, so they are best-effort abuse controls rather than globally shared quotas.
 
-1. Keep using `https://speechpocket.vercel.app` for now. Later, attach the Voculo custom domain to the intended Vercel project, complete Vercel's DNS verification, and decide whether `www` redirects to the apex domain.
-2. Create/connect a Vercel Blob store and Upstash Redis database. Add their credentials to Preview and Production; confirm both integrations are in the same Vercel project.
-3. Add the secrets above, then redeploy a Preview. Verify a recording upload, transcription, generated speech, quota response, and cleanup. The daily cleanup cron is declared in `vercel.json`; it requires `CRON_SECRET`.
-4. Enable Web Analytics in the Vercel project. Analytics only sends page views and tool/action completion events; it never sends audio, filenames, text, or transcripts.
-5. For now, use `https://speechpocket.vercel.app/sitemap.xml`. After the custom domain is attached, update `NEXT_PUBLIC_SITE_URL`, verify the domain in Google Search Console, redeploy, and submit its sitemap.
-6. Configure the support inbox before pointing visitors to it. Have the business operator review the Terms and Privacy pages for the actual operator, target countries, and local legal requirements.
+## Release checks
 
-## Launch boundary
+1. Configure `DEEPGRAM_API_KEY` in Vercel Preview and Production.
+2. Keep `NEXT_PUBLIC_SITE_URL=https://speechpocket.vercel.app` until the custom domain is connected.
+3. Deploy a preview and verify the homepage, tool directory, legal pages, and representative tools on desktop and mobile.
+4. Test one supported audio upload below 4.5 MB, one file above the limit, transcription, speech generation, an advanced analysis, and a live microphone session.
+5. Confirm the preview has no console errors and that API failures show a useful message.
+6. Promote the verified build to production. Connect the custom domain later, update `NEXT_PUBLIC_SITE_URL`, redeploy, and submit the new sitemap to Search Console.
 
-No ad network is installed. Add ads only after an ad account is approved, the exact ad provider and consent requirements are known, and the Privacy page is updated. Do not publish this build as a promise of confidential-file handling: temporary upload URLs can be opened by anyone who obtains the URL until the file is deleted.
+No ad network is installed. Do not show empty ad slots before an ad provider is configured.
