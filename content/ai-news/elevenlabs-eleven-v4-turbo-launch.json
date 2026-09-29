@@ -1,0 +1,52 @@
+{
+  "slug": "elevenlabs-eleven-v4-turbo-launch",
+  "title": "ElevenLabs launches Eleven v4 and a low-latency Turbo model for voice agents",
+  "description": "Eleven v4 targets expressive produced audio, while Eleven v4 Turbo brings the same model family to real-time voice applications.",
+  "dek": "The new text-to-speech models support more than 90 languages and are available through ElevenCreative, ElevenAgents and the ElevenLabs API.",
+  "category": "Voice AI",
+  "publishedAt": "2026-09-29T05:12:00.000Z",
+  "updatedAt": "2026-09-29T05:12:00.000Z",
+  "author": "SpeechPocket Newsroom",
+  "sourceEventDate": "2026-09-28",
+  "takeaways": [
+    "Eleven v4 is tuned for expressive produced content, including dialogue, narration and voiceovers.",
+    "Eleven v4 Turbo targets real-time voice agents with company-reported median inference latency of about 100 milliseconds.",
+    "Both models support more than 90 languages and are available through ElevenLabs products and API."
+  ],
+  "sections": [
+    {
+      "heading": "Two models for different voice workflows",
+      "paragraphs": [
+        "ElevenLabs launched Eleven v4 and Eleven v4 Turbo on September 28, splitting its newest text-to-speech generation between produced audio and real-time interaction. Eleven v4 is tuned for expressive dialogue, narration and voiceovers, while Turbo is designed for conversational agents and other latency-sensitive applications.",
+        "Both models are available in ElevenCreative, ElevenAgents and through ElevenAPI. ElevenLabs’ documentation lists the model identifiers as eleven_v4 and eleven_v4_turbo, with support for more than 90 languages. Eleven v4 accepts up to 10,000 characters and supports multi-speaker dialogue."
+      ]
+    },
+    {
+      "heading": "Speed claims require workload testing",
+      "paragraphs": [
+        "ElevenLabs reports that Turbo reaches roughly 100 milliseconds of median inference latency and about 150 milliseconds median time to first speech. Those figures come from the company’s own testing and should not be treated as guaranteed end-to-end call latency. Network conditions, text generation, audio delivery and application architecture add delay.",
+        "Independent coverage from TestingCatalog confirmed the launch, current availability and core model positioning. The release also restores support for Professional Voice Clones and adds audio-tag controls for delivery and sound effects."
+      ]
+    },
+    {
+      "heading": "What developers should test",
+      "paragraphs": [
+        "Teams should compare v4 with existing production voices using representative languages, long scripts and interruptions before switching defaults. For live agents, measure complete response time rather than model inference alone, and verify that voice-cloning consent, retention and disclosure controls match the intended use."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "ElevenLabs: Introducing Eleven v4",
+      "url": "https://elevenlabs.io/blog/eleven-v4"
+    },
+    {
+      "title": "ElevenLabs documentation: Models overview",
+      "url": "https://elevenlabs.io/docs/overview/models"
+    },
+    {
+      "title": "TestingCatalog: ElevenLabs launches Eleven v4 and v4 Turbo",
+      "url": "https://www.testingcatalog.com/elevenlabs-launches-eleven-v4-and-v4-turbo-voice-models/"
+    }
+  ]
+}
