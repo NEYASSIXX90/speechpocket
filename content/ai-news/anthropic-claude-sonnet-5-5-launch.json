@@ -1,0 +1,48 @@
+{
+  "slug": "anthropic-claude-sonnet-5-5-launch",
+  "title": "Anthropic launches Claude Sonnet 5.5 with faster output at unchanged token prices",
+  "description": "Claude Sonnet 5.5 is now available across Anthropic, AWS, Google Cloud and Microsoft Azure, with new cyber safeguards and efficiency claims.",
+  "dek": "Anthropic’s second Claude 5.5 model targets everyday coding and knowledge work while keeping API prices at $2 input and $10 output per million tokens.",
+  "category": "AI tools",
+  "publishedAt": "2026-09-29T01:27:00.000Z",
+  "updatedAt": "2026-09-29T01:27:00.000Z",
+  "author": "SpeechPocket Newsroom",
+  "sourceEventDate": "2026-09-28",
+  "takeaways": [
+    "Claude Sonnet 5.5 is available on Anthropic’s platforms, AWS, Google Cloud and Microsoft Azure.",
+    "API list prices remain $2 per million input tokens and $10 per million output tokens.",
+    "Anthropic’s speed, efficiency and benchmark figures are company-reported and should be tested on real workloads."
+  ],
+  "sections": [
+    {
+      "heading": "A faster Sonnet release",
+      "paragraphs": [
+        "Anthropic released Claude Sonnet 5.5 on September 28, positioning it as the everyday-work counterpart to the more expensive Opus 5.5. The model is available through Claude, Claude Code and the Claude API, as well as Amazon Web Services, Google Cloud and Microsoft Azure. Developers can select it with the model identifier claude-sonnet-5-5.",
+        "List pricing remains $2 per million input tokens and $10 per million output tokens. Anthropic says Sonnet 5.5 generates output more than 30% faster than Sonnet 5 and can cost up to 30% less per completed task because it uses fewer tokens. Reuters independently confirmed the launch, pricing and intended focus on coding, documents and spreadsheets."
+      ]
+    },
+    {
+      "heading": "Capability claims need real-world testing",
+      "paragraphs": [
+        "Anthropic reports large gains on several internal and third-party evaluations, including a 70.6% score on Terminal-Bench 4.0 versus 10.3% for Sonnet 5. Those figures come from Anthropic’s launch materials and do not guarantee the same improvement on a team’s own prompts, tools or repositories.",
+        "The model also launches with cyber safeguards that can route higher-risk requests to Sonnet 5, while routine software development should remain available. Anthropic says biology protections are unchanged."
+      ]
+    },
+    {
+      "heading": "What users should do next",
+      "paragraphs": [
+        "Teams considering a switch should compare task completion, token use, latency and fallback behavior on a representative test set before changing production defaults. Developers using Sonnet with thinking disabled should also review Anthropic’s new between_tools migration setting. Claude Haiku 5.5 is expected in the coming weeks."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Anthropic: Introducing Claude Sonnet 5.5",
+      "url": "https://www.anthropic.com/claude-sonnet-5-5"
+    },
+    {
+      "title": "Reuters: Anthropic rolls out second Claude 5.5 model",
+      "url": "https://www.reuters.com/technology/anthropic-rolls-out-second-claude-55-model-it-builds-toward-ipo-2026-09-28/"
+    }
+  ]
+}
