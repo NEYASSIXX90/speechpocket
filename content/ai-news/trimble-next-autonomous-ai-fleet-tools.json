@@ -1,0 +1,52 @@
+{
+  "slug": "trimble-next-autonomous-ai-fleet-tools",
+  "title": "Trimble unveils autonomous AI and voice tools for fleet operations",
+  "description": "Trimble’s NEXT showcase adds natural-language navigation, autonomous route planning and agent workflows to its transportation software.",
+  "dek": "Nearly 20 updates bring AI assistance and governed automation into existing routing, maintenance, yard and transportation-management products.",
+  "category": "Enterprise AI",
+  "publishedAt": "2026-09-29T05:13:00.000Z",
+  "updatedAt": "2026-09-29T05:13:00.000Z",
+  "author": "SpeechPocket Newsroom",
+  "sourceEventDate": "2026-09-28",
+  "takeaways": [
+    "Trimble’s NEXT showcase includes nearly 20 transportation-software features and upgrades.",
+    "New tools cover natural-language driver navigation, autonomous route planning and agent-driven administrative workflows.",
+    "Availability depends on the customer’s existing Trimble products, software versions and additional terms."
+  ],
+  "sections": [
+    {
+      "heading": "AI moves into fleet workflows",
+      "paragraphs": [
+        "Trimble unveiled nearly 20 transportation-software features and upgrades on September 28 at its Insight conference in San Diego. The NEXT showcase spans voice-assisted navigation, autonomous route planning, maintenance-document processing, yard orchestration and agent-ready transportation-management systems.",
+        "CoPilot Driver Assistant adds hands-free natural-language navigation for locating fuel and parking and managing hours-of-service limits. Appian Fleet Assistant’s autonomous-planning add-on captures operating rules to build multi-stop route plans, while Route Orchestration connects planning, execution, visibility and settlement."
+      ]
+    },
+    {
+      "heading": "Agents with defined approval points",
+      "paragraphs": [
+        "Trimble Arc Agent can handle workflows including order entry, contract intake and request-for-quote preparation. Trimble says fleet teams retain final approval. The company is also modernizing TMW.Suite, TruckMate, Innovative and Fuel Dispatch with browser-based interfaces intended to support collaboration between people and AI agents.",
+        "The release matters because it applies agentic AI to established operational systems rather than requiring fleets to replace their core software. That may reduce adoption friction, but Trimble’s productivity and savings figures remain company-reported and need validation in customer deployments."
+      ]
+    },
+    {
+      "heading": "Availability varies by product",
+      "paragraphs": [
+        "The announced tools are available for customer preview or deployment, depending on product and version requirements. Some are licensed add-ons, and Trimble says extra fees or terms may apply. Buyers should confirm data boundaries, human-approval settings, integration requirements and measurable results before automating dispatch or compliance-sensitive work."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Trimble: Autonomous AI and agent-ready platforms at Insight 2026",
+      "url": "https://news.trimble.com/2026-09-28-Trimble-Accelerates-Transportation-Modernization-with-Autonomous-AI-and-Agent-Ready-Platforms-at-2026-Insight-Conference"
+    },
+    {
+      "title": "Trimble: Insight 2026 NEXT showcase",
+      "url": "https://transportation.trimble.com/en/insight/next-showcase"
+    },
+    {
+      "title": "AI Brief: Trimble introduces AI tools for fleet and logistics operations",
+      "url": "https://dailyaibrief.com/news/trimble-ai-tools-fleet-logistics-operations-SiwK4WyB"
+    }
+  ]
+}
